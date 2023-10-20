@@ -36,7 +36,7 @@ author:
     email: jason.goertzen@sandboxquantum.com
 
 normative:
-  TURBOTLS:
+  ABGGJS23:
     target: https://arxiv.org/abs/2302.05311
     title: "TurboTLS: TLS connection establishment with 1 less round trip"
     author:
@@ -101,7 +101,6 @@ informative:
     author:
       -
         ins: W. Simpson
-  ZHANG: DOI.10.1007/978-3-540-24632-9_26
   DNSUDP:
     target: https://indico.dns-oarc.net/event/36/contributions/776/
     title: "Defragmenting DNS - Determining the optimal maximum UDP response size for DNS"
@@ -121,13 +120,13 @@ Discussion of this work is encouraged to happen on the TLS IETF mailing list tls
 
 # Introduction {#introduction}
 
-This document gives a construction for TurboTLS {{TURBOTLS}}, which at its core is a method for handshaking over UDP in TLS before switching back to TCP for the TLS session. A technique called client request-based fragmentation is described to reduce the possibility of portions of the handshake over UDP being filtered by poorly configured middle-boxes, and a fallback procedure to standard TLS-over-TCP (at minimal latency overhead) is provided.
+This document gives a construction for TurboTLS {{ABGGJS23}}, which at its core is a method for handshaking over UDP in TLS before switching back to TCP for the TLS session. A technique called client request-based fragmentation is described to reduce the possibility of portions of the handshake over UDP being filtered by poorly configured middle-boxes, and a fallback procedure to standard TLS-over-TCP (at minimal latency overhead) is provided.
 
 
 
 ## Terminology {#terminology}
 
-- **UDP*** Universal Datagram Protocol: a connectionless transport protocol, whereby packets are sent, but without any codified way of knowing that such packets have been successfully received. This leads to low reliability but can be appropriate where applications are time sensitive.
+- **UDP** Universal Datagram Protocol: a connectionless transport protocol, whereby packets are sent, but without any codified way of knowing that such packets have been successfully received. This leads to low reliability but can be appropriate where applications are time sensitive.
 - **TCP** Transmission Control Protocol: a connection-oriented protocol that ensures the successful delivery of packets. Before a communication over TCP can start in earnest, a connection must be established. This is done via a TCP handshake consisting of a SYN, a SYN ACK and an ACK.
 - **TLS** Transport Layer Security: a cryptographic protocol that enables a client and server to authenticate one another, and communicate confidentially. TLS initializes with a handshake where cryptographic primitives are executed and session parameters are agreed upon, and then a session over which applications exchange encrypted communications.
 - **QUIC** (not an acronym): a security protocol that embeds TLS functionality directly into UDP-based transport. Due to the drawbacks of UDP, QUIC implements its own reliability, packet reordering, and packet dropping procedures as well as the security properties.
@@ -142,7 +141,7 @@ Many will make the choice to move from TLS to QUIC, however some will not for a 
 
 ## Scope {#scope}
 
-This document focuses on TurboTLS {{TURBOTLS}}. It covers everything needed to achieve the handshaking portion of a TLS connection over UDP, including
+This document focuses on TurboTLS {{ABGGJS23}}. It covers everything needed to achieve the handshaking portion of a TLS connection over UDP, including
 
 - **Construction in principle:** It provides an outline of which flows are sent over UDP, which are sent over TCP and in what order.
 
