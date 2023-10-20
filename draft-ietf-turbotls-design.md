@@ -125,7 +125,7 @@ informative:
 
 --- abstract
 
-This document provides a protocol definition for handshaking over UDP in the Transport Layer Security (TLS) protocol (version independent). In parallel, a TCP session is established, and once this is done, the TLS session reverts to TCP. In the event that the UDP handshaking portion fails, TurboTLS falls back to TLS-over-TCP as is usually done, resulting in negligible latency cost in the case of failure. The document also describes a mechanism for maximising UDP-TLS-handshake compatibility with middleboxes, known as _request-based-fragmentation_
+This document provides a high level protocol description for handshaking over UDP in the Transport Layer Security (TLS) protocol (version independent). In parallel, a TCP session is established, and once this is done, the TLS session reverts to TCP. In the event that the UDP handshaking portion fails, TurboTLS falls back to TLS-over-TCP as is usually done, resulting in negligible latency cost in the case of failure.
 
 Discussion of this work is encouraged to happen on the TLS IETF mailing list tls@ietf.org or on the GitHub repository which contains the draft: https://github.com/PhDJsandboxaq/draft-ietf-turbotls-design/.
 
@@ -133,7 +133,9 @@ Discussion of this work is encouraged to happen on the TLS IETF mailing list tls
 
 # Introduction {#introduction}
 
-This document gives a construction for TurboTLS {{ABGGJS23}}, which at its core is a method for handshaking over UDP in TLS before switching back to TCP for the TLS session. A technique called client request-based fragmentation is described to reduce the possibility of portions of the handshake over UDP being filtered by poorly configured middle-boxes, and a fallback procedure to standard TLS-over-TCP (at minimal latency overhead) is provided.
+This document gives a construction for TurboTLS {{ABGGJS23}}, which at its core is a method for handshaking over UDP in TLS before switching back to TCP for the TLS session. A technique called client request-based fragmentation is described which reduces the susceptability of TurboTLS servers to being exploited by UDP reflection attacks.
+
+reduce the possibility of portions of the handshake over UDP being filtered by poorly configured middle-boxes, and a fallback procedure to standard TLS-over-TCP (at minimal latency overhead) is provided.
 
 
 
@@ -160,7 +162,7 @@ This document focuses on TurboTLS {{ABGGJS23}}. It covers everything needed to a
 
 - **TLS-over-TCP fallback:** The document describes what to do in the case of failure due to UDP packet loss or filtering. The scheme should revert to TLS-over-TCP incurring a small latency overhead that should be minimal in comparison with standard TLS-over-TCP without a TurboTLS attempt.
 
-- **Client request-based fragmentation:** Due to the impact of post-quantum cryptography such as larger keys certain considerations have to be taken into account. One is that a Server Hello is likely to require multiple UDP packets, thus to eliminate the possibility of reflection attacks and failures due to middle-box filtering, we describe how to create a one-to-one correspondence between Client Hello packets and Server Hello packets.
+- **Client request-based fragmentation:** Due to the impact of post-quantum cryptography such as larger keys certain considerations have to be taken into account. One is that a Server Hello is likely to require multiple UDP packets, thus to eliminate the possibility of reflection attacks and hence serve as a DDoS mitigation, we describe how to create a one-to-one correspondence between Client Hello packets and Server Hello packets.
 
 - **How to implement via a transparent proxy:** The document gives a brief description of how one can implement TurboTLS via a transparent proxy, which has two implications. The first is that it demonstrates clearly that the security of TLS is unchanged, as a server and client can have their entire transcript intercepted by two proxies (one in front of each), which TurboTLS-ify the interaction. Thus the view server and client is unchanged versus standard TLS. The second is that the TLS proxy represents a way for legacy systems to benefit from faster connection establishment without requiring direct upgrades.
 
@@ -304,7 +306,11 @@ Obviously the client can fragment its first C->S flow across multiple UDP packet
 Similarly, the server can fragment its first S->C flow across multiple UDP packets.  One additional problem here however is that the S->C flow is typically larger than the C->S flow (as it typically contains one or more certificates), so the server may have to send more UDP response packets than UDP request packets.  As noted by {{SW19}} in the context of DNSSEC, many network devices do not behave well when receiving multiple UDP responses to a single UDP request, and may close the port after the first packet, dropping the request.  Subsequent packets received at a closed port lead to ICMP failure alerts, which can be a nuisance.
 
 ### Client request-based fragmentation {#Construction-CRBF}
-We employ a recent method proposed by Goertzen and Stebila {{GS22}} for DNSSEC: request-based fragmentation.  In the context of large resource records in DNSSEC, {{GS22}} had the first response be a truncated response that included information about the size of the response, and then the client sent multiple additional requests, in parallel, for the remaining fragments.  This ensured that there was only one UDP response for each UDP request.  We adapt that method for TurboTLS: the client, in its first C->S flow, fragments its own C->S data across multiple UDP packets, and additionally sends (in parallel) enough nearly-empty UDP requests for a predicted upper bound on the number of fragments the server will need to fit its response.  This preserves the model of each UDP request receiving a single UDP response, reducing the impact of misbehaving network devices and also reducing the potential for DDoS amplification attacks.
+A method proposed by Goertzen and Stebila {{GS22}} for DNSSEC is called request-based fragmentation.  In the context of large resource records in DNSSEC, {{GS22}} had the first response be a truncated response that included information about the size of the response, and then the client sent multiple additional requests, in parallel, for the remaining fragments.  This ensured that there was only one UDP response for each UDP request.  
+
+Maintaining one-to-oneness of UDP packets can prevent reflection attacks. We therefore offer an adaptation of that method for TurboTLS: the client can, in its first C->S flow, fragment its own C->S data across multiple UDP packets. Additionally it sends (in parallel) enough nearly-empty UDP requests for a predicted upper bound on the number of fragments the server will need to fit its response.  This preserves the model of each UDP request receiving a single UDP response reducing the potential for DDoS amplification attacks.
+
+TODO: we solicit advice on the potential impacts of this method on middlebox compatibility, and whether the benefit in DDoS protection is offset by other presently unknown factors.
 
 ## TLS-over-TCP fallback {#Construction-fallback}
 UDP does not have reliable delivery, so packets may be lost.  Since the first TurboTLS round-trip includes the TCP handshake, we can immediately fall back to TCP if a UDP packet is lost in either direction.  This will induce a latency cost of however long the client decides to wait for UDP packets to arrive before giving up and assuming they were lost.
@@ -387,6 +393,6 @@ UDP reflection attacks present another threat. Typical defenses against these ar
 - blocking IPs of other known vulnerable servers.
 However such defenses are provided by middleboxes and therefore do not affect the protocol.
 
-It should be noted here that the redundant UDP packets sent along with CH are part of the TurboTLS-specific technique we call request-based-fragmentation to mitigate _against_ a client's middlebox defenses incorrectly filtering TurboTLS connections, as otherwise multiple UDP responses to a single UDP request could be flagged as malicious behaviour. Furthermore, the one-to-oneness of the UDP request/response significantly reduces the impact of any amplification attack which tries to utilize a TurboTLS server as a reflector: an attacker would have to send one UDP packet for every reflected packet generated by the server, meaning that initial requests and responses are of comparable sizes, making the amplification factor so low that it would be an ineffective use of resources. Furthermore, the UDP requests ultimately must contain a fully formed CH before the server responds, limiting the amplification factor.
+The one-to-oneness of the UDP request/response significantly reduces the impact of any amplification attack which tries to utilize a TurboTLS server as a reflector: an attacker would have to send one UDP packet for every reflected packet generated by the server, meaning that initial requests and responses are of comparable sizes, making the amplification factor so low that it would be an ineffective use of resources. Furthermore, the UDP requests ultimately must contain a fully formed CH before the server responds, limiting the amplification factor.
 
 --- back
