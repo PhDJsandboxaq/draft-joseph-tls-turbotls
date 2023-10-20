@@ -108,7 +108,20 @@ informative:
     author:
       -
         ins: Axel Koolhaas
-      - ins: Tjeerd Slokker
+      - 
+        ins: Tjeerd Slokker
+  SBN22:
+    target: https://datatracker.ietf.org/doc/draft-ietf-dnsop-svcb-https/11/
+    title: "Service binding and parameter specification via the DNS (DNS SVCB and HTTPS RRs)"
+    date: 2022-10-11
+    author:
+      -
+        ins: Benjamin M. Schwartz
+      -
+        ins: Mike Bishop
+      -
+        ins: Erik Nygren
+    
 
 --- abstract
 
@@ -171,7 +184,7 @@ It intentionally does not address:
 # Transport Layer Security {#TLS}
 The Transport Layer Security (TLS) protocol is ubiquitous and provides security services to many network applications.  TLS runs over TCP.  As shown in {{fig-tls-over-tcp}}, the main flow for TLS 1.3 connection establishment {{TLS13}} in a web browser is as follows.
 
-First of all, the client makes a DNS query to convert the requested domain name into an IP address.  Simultaneously, browsers request an HTTPS resource record [draft-ietf-dnsop-svcb-https-11](https://datatracker.ietf.org/doc/draft-ietf-dnsop-svcb-https/11/) from the DNS server which can provide additional information about the server's HTTPS configuration.  Next, the client and server perform the TCP three-way handshake.  Once the TCP handshake is complete and a TCP connection is established, the TLS handshake can start; it requires one round trip -- one client-to-server C->S flow and one server-to-client S->C flow -- before the client can start transmitting application data.
+First of all, the client makes a DNS query to convert the requested domain name into an IP address.  Simultaneously, browsers request an HTTPS resource record {{SBN22}} from the DNS server which can provide additional information about the server's HTTPS configuration.  Next, the client and server perform the TCP three-way handshake.  Once the TCP handshake is complete and a TCP connection is established, the TLS handshake can start; it requires one round trip -- one client-to-server C->S flow and one server-to-client S->C flow -- before the client can start transmitting application data.
 
 In total (not including the DNS resolution) this results in two round trips before the client can send the first byte of application data (the TCP handshake, plus the first C->S and S->C flows of the TLS handshake), and one further round trip before the client receives its first byte of response.
 
@@ -297,7 +310,7 @@ We employ a recent method proposed by Goertzen and Stebila {{GS22}} for DNSSEC: 
 UDP does not have reliable delivery, so packets may be lost.  Since the first TurboTLS round-trip includes the TCP handshake, we can immediately fall back to TCP if a UDP packet is lost in either direction.  This will induce a latency cost of however long the client decides to wait for UDP packets to arrive before giving up and assuming they were lost.
 
 In an implementation, the client delay could be a fixed number of milliseconds, or could be variable depending on observed network conditions; this need not be fixed by a standard.
-We believe that in many cases a client delay of just 2ms after the TCP reply is received in the first round trip will be enough to ensure UDP responses are received a large majority of the time.  In other words, by tolerating a potential 2ms of extra latency on $X$\% of connections, we can save an entire round-trip on a large proportion ($100-X$\%) of the connections.
+We believe that in many cases a client delay of just 2ms after the TCP reply is received in the first round trip will be enough to ensure UDP responses are received a large majority of the time.  In other words, by tolerating a potential 2ms of extra latency on _X%_ of connections, we can save an entire round-trip on a large proportion _(100-X%)_ of the connections.
 This mechanic was not implemented in the experimental results presented here and constitutes future work.
 
 ### Early data, post-handshake messages, and TCP fallback {#Construction-early-data}
