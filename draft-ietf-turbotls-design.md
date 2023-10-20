@@ -359,9 +359,6 @@ As part of joining the UDP and TCP streams together once a TCP connection is est
 ~~~~~
 {: #turbotls-tombstone title="TurboTLS tombstone packet layout"}
 
-# Discussion {#discussion}
-TODO do we even need this? This isn't a paper.
-
 # Security Considerations {#security-considerations}
 
 ## Transparent proxying {#security-proxy}
