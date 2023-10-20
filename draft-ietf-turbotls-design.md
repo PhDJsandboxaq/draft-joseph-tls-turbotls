@@ -312,7 +312,8 @@ To protect servers who do not support TurboTLS from being bombarded with unwante
 ## Specification: Handshake embedding into UDP {#Construction-embedding}
 
 Rather than relying on IP fragmentation, and the issues that may arise from IP/UDP fragmentation, we fragment at the application layer and send a new UDP packet each time the packet size would exceed a predefined _safe_ size. This predefined size will need to account for the various headers and metadata being sent in each packet. In DNS, for example, the recommended maximum payload size is 1232 bytes to account for IPv6, and UDP headers {{DNSUDP}}. As previously mentioned, TurboTLS UDP packets contain a session ID, and a sequence number. These Turbo-headers will be prefixed to the payload of each UDP packet being set. Both client and server UDP communication streams have their own distinct sequence counters to maintain ordering in either direction.
-~~~
+
+~~~~~
                                     1  1  1  1  1  1
       0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
     +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
@@ -323,19 +324,20 @@ Rather than relying on IP fragmentation, and the issues that may arise from IP/U
     /                                               /
     /                                               /
     +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-~~~
+~~~~~
 {: #turbotls-udp-packet title="TurboTLS UDP packet layout"}
 
 ## Specification: UDP Tombstone
 
 As part of joining the UDP and TCP streams together once a TCP connection is established, the cleint sends a tombstone message as the first message over TCP. This message contains the session ID as well as the sequence number of the last in order UDP packet that it received. The server will then use this message to determine which handshake a given TCP stream should be associated with, as well as what data needs to be retransmitted due packet loss.
-~~~
+
+~~~~~
                                     1  1  1  1  1  1
       0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
     +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
     |             Session ID            |Seq. Number|
     +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-~~~
+~~~~~
 {: #turbotls-tombstone title="TurboTLS tombstone packet layout"}
 
 # Discussion {#discussion}
