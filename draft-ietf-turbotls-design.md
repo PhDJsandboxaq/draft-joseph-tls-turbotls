@@ -22,14 +22,13 @@ author:
   -
     ins: D. Joseph
     name: David Joseph
-    organization: SandboxAQ 
+    organization: SandboxAQ
     email: dj@sandboxaq.com
   -
     ins: C. Aguilar-Melchor
     name: Carlos Aguilar-Melchor
     organization: SandboxAQ
     email: carlos.aguilar@sandboxaq.com
-
   -
     ins: J. Goertzen
     name: Jason Goertzen
@@ -37,7 +36,7 @@ author:
     email: jason.goertzen@sandboxquantum.com
 
 normative:
-  TurboTLS:
+  TURBOTLS:
     target: https://arxiv.org/abs/2302.05311
     title: "TurboTLS: TLS connection establishment with 1 less round trip"
     author:
@@ -103,6 +102,14 @@ informative:
       -
         ins: W. Simpson
   ZHANG: DOI.10.1007/978-3-540-24632-9_26
+  DNSUDP:
+    target: https://indico.dns-oarc.net/event/36/contributions/776/
+    title: "Defragmenting DNS - Determining the optimal maximum UDP response size for DNS"
+    date: 2020-09-11
+    author:
+      -
+        ins: Axel Koolhaas
+      - ins: Tjeerd Slokker
 
 --- abstract
 
@@ -114,7 +121,7 @@ Discussion of this work is encouraged to happen on the TLS IETF mailing list tls
 
 # Introduction {#introduction}
 
-This document gives a construction for TurboTLS, which at its core is a method for handshaking over UDP in TLS before switching back to TCP for the TLS session. A technique called client request-based fragmentation is described to reduce the possibility of portions of the handshake over UDP being filtered by poorly configured middle-boxes, and a fallback procedure to standard TLS-over-TCP (at minimal latency overhead) is provided.
+This document gives a construction for TurboTLS {{TURBOTLS}}, which at its core is a method for handshaking over UDP in TLS before switching back to TCP for the TLS session. A technique called client request-based fragmentation is described to reduce the possibility of portions of the handshake over UDP being filtered by poorly configured middle-boxes, and a fallback procedure to standard TLS-over-TCP (at minimal latency overhead) is provided.
 
 
 
@@ -135,7 +142,7 @@ Many will make the choice to move from TLS to QUIC, however some will not for a 
 
 ## Scope {#scope}
 
-This document focuses on TurboTLS {{TurboTLS}}. It covers everything needed to achieve the handshaking portion of a TLS connection over UDP, including
+This document focuses on TurboTLS {{TURBOTLS}}. It covers everything needed to achieve the handshaking portion of a TLS connection over UDP, including
 
 - **Construction in principle:** It provides an outline of which flows are sent over UDP, which are sent over TCP and in what order.
 
@@ -163,7 +170,7 @@ It intentionally does not address:
 
 
 # Transport Layer Security {#TLS}
-The Transport Layer Security (TLS) protocol is ubiquitous and provides security services to many network applications.  TLS runs over TCP.  As shown in **DJ ref fig**, the main flow for TLS 1.3 connection establishment {{TLS13}} in a web browser is as follows.
+The Transport Layer Security (TLS) protocol is ubiquitous and provides security services to many network applications.  TLS runs over TCP.  As shown in {{fig-tls-over-tcp}}, the main flow for TLS 1.3 connection establishment {{TLS13}} in a web browser is as follows.
 
 First of all, the client makes a DNS query to convert the requested domain name into an IP address.  Simultaneously, browsers request an HTTPS resource record [draft-ietf-dnsop-svcb-https-11](https://datatracker.ietf.org/doc/draft-ietf-dnsop-svcb-https/11/) from the DNS server which can provide additional information about the server's HTTPS configuration.  Next, the client and server perform the TCP three-way handshake.  Once the TCP handshake is complete and a TCP connection is established, the TLS handshake can start; it requires one round trip -- one client-to-server C->S flow and one server-to-client S->C flow -- before the client can start transmitting application data.
 
@@ -175,7 +182,7 @@ TLS does have a pre-shared key mode that allows for an abbreviated handshake per
 We first demonstrate protocol diagrams of the handshaking parts of TLS and TurboTLS.
 
 ## Protocol diagram TLS {#construction-diag-tls}
-lalala
+
 
 ~~~~~
 
@@ -217,12 +224,11 @@ lalala
               TCP: TLS app data             │RT3
      ------------------------------------>  │
 ~~~~~
+{: #fig-tls-over-tcp title="TLS-over-TCP handshake"}
 
 ## Protocol diagram TurboTLS {#construction-diag-turbotls}
-lalala
 
 ~~~~~
-
 ┌----------┐                        ┌----------┐
 │TLS client│                        │DNS server│
 └----------┘                        └----------┘
@@ -244,7 +250,7 @@ lalala
 └----------┘                        └----------┘
        UDP: TurboTLS id, TLS CH frag#1
      ------------------------------------>  │
-       UDP: TurboTLS id, TLS CH frag#1      │
+       UDP: TurboTLS id, TLS CH frag#2      │
      ------------------------------------>  │
        UDP: TurboTLS id, empty frag#1       │
      ------------------------------------>  │
@@ -271,7 +277,9 @@ lalala
               TCP: TLS app data             │
      ------------------------------------>  │
 ~~~~~
-As described in **ref fig**, TurboTLS sends part of the TLS handshake over UDP, rather than TCP.
+{: #fig-turbotls title="TurboTLS Handshake"}
+
+As described in {{fig-turbotls}}, TurboTLS sends part of the TLS handshake over UDP, rather than TCP.
 Switching from TCP to UDP for handshake establishment means we cannot rely on TCP's features, namely connection-oriented, reliable, in-order delivery.
 However, since the rest of the connection will still run over TCP and only part of the handshake runs over UDP,
 we can reproduce the required functionality in a lightweight way without adding latency and allowing for a simple implementation.
@@ -279,7 +287,7 @@ we can reproduce the required functionality in a lightweight way without adding 
 ## Fragmentation {#Construction-fragmentation}
 One of the major problems to deal with is that of fragmentation.  TLS handshake messages can be too large to fit in a single packet -- especially with long certificate chains or if post-quantum algorithms are used.
 
-Obviously the client can fragment its first C->S flow across multiple UDP packets.  To allow a server to link fragments received across multiple UDP requests, we add a 12-byte connection identifier field, containing a client-selected random value _id_ that is used across all TurboTLS fragments sent by the client. The connection identifier is also included in the first message on the established TLS connection to allow the server to link together data received on the UDP and TCP connections. To allow the server to reassemble fragments if they arrive out-of-order, each fragment includes the total length of the original message as well as the offset of the current fragment; this can allow the server to easily copy fragments into the right position within a buffer as they are received.
+Obviously the client can fragment its first C->S flow across multiple UDP packets.  To allow a server to link fragments received across multiple UDP requests, we add a 12-byte session ID field, containing a client-selected random value _id_ that is used across all TurboTLS fragments sent by the client. The session ID is also included in the first message on the established TLS connection as part of the tombstone message to allow the server to link together data received on the UDP and TCP connections. To allow the server to reassemble fragments if they arrive out-of-order. The client will send the last in-order UDP packet it received's sequence number as a part of the tombstone message so that the server can detect packetloss.
 
 Similarly, the server can fragment its first S->C flow across multiple UDP packets.  One additional problem here however is that the S->C flow is typically larger than the C->S flow (as it typically contains one or more certificates), so the server may have to send more UDP response packets than UDP request packets.  As noted by {{SW19}} in the context of DNSSEC, many network devices do not behave well when receiving multiple UDP responses to a single UDP request, and may close the port after the first packet, dropping the request.  Subsequent packets received at a closed port lead to ICMP failure alerts, which can be a nuisance.
 
@@ -293,19 +301,46 @@ In an implementation, the client delay could be a fixed number of milliseconds, 
 We believe that in many cases a client delay of just 2ms after the TCP reply is received in the first round trip will be enough to ensure UDP responses are received a large majority of the time.  In other words, by tolerating a potential 2ms of extra latency on $X$\% of connections, we can save an entire round-trip on a large proportion ($100-X$\%) of the connections.
 This mechanic was not implemented in the experimental results presented here and constitutes future work.
 
+### Early data, post-handshake messages, and TCP fallback {#Construction-early-data}
+
+As part of the TLS 1.3 specification, a server is able to send encrypted application data and connection maintenance related messages after it sends its server finished message. One could wait until the TCP connection is established and is associated with the correct UDP handshake. This would remove the benefit that TurboTLS offers as it requires the server to wait for the TCP connection to finish being established. We therefore propose that all post-handshake messages and early data message attempt to be transmitted over UDP. These messages should therefore be wrapped with the standard TurboTLS headers (session ID and index) to ensure that can be associated with the correct TLS session. Once the TCP connection is established, the client's first message should include the index of the last in order UDP based packet that was received. The server can then determine what needs to be retransmitted over the reliable TCP connection.
+
+In the best case scenario, these early data and post-handshake messages arrive one round trip sooner than they would than in TCP-based TLS, and in the worst cast arrive at the same time as TCP-based TLS. However, this fallback method comes at the cost of requiring additional memory usage by the server to store the messages sent over UDP until it has verified they have been delivered.
+
 ## TurboTLS support advertisment {#Construction-advertisment}
 To protect servers who do not support TurboTLS from being bombarded with unwanted UDP traffic, it would be preferable if clients only used TurboTLS with servers that they already know support it.  Clients could cache this information from previous non-TurboTLS connections, but in fact we can do better.  Even on the first visit to a server, we can communicate server support for TurboTLS to the client, without an extra round trip, using the HTTPS resource record in DNS {{SBN22}}.  Today when web browsers perform the DNS lookup for the domain name in question, they typically send three requests in parallel: an A query for an IPv4 address, an AAAA query for an IPv6 address, and a query for an HTTPS resource record {{SBN22}}.  Servers can advertise support for TurboTLS with an additional flag in the HTTPS resource record and clients can check for it without incurring any extra latency.
 
 ## Specification: Handshake embedding into UDP {#Construction-embedding}
 
-### Client Hello {#Construction-embedding-CH}
+Rather than relying on IP fragmentation, and the issues that may arise from IP/UDP fragmentation, we fragment at the application layer and send a new UDP packet each time the packet size would exceed a predefined _safe_ size. This predefined size will need to account for the various headers and metadata being sent in each packet. In DNS, for example, the recommended maximum payload size is 1232 bytes to account for IPv6, and UDP headers {{DNSUDP}}. As previously mentioned, TurboTLS UDP packets contain a session ID, and a sequence number. These Turbo-headers will be prefixed to the payload of each UDP packet being set. Both client and server UDP communication streams have their own distinct sequence counters to maintain ordering in either direction.
+~~~
+                                    1  1  1  1  1  1
+      0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
+    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+    |             Session ID            |Seq. Number|
+    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+    /                    Payload                    /
+    /                                               /
+    /                                               /
+    /                                               /
+    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+~~~
+{: #turbotls-udp-packet title="TurboTLS UDP packet layout"}
 
-### Server Hello {#Construction-embedding-SH}
+## Specification: UDP Tombstone
 
-### Early data {#Construction-embedding-early-data}
+As part of joining the UDP and TCP streams together once a TCP connection is established, the cleint sends a tombstone message as the first message over TCP. This message contains the session ID as well as the sequence number of the last in order UDP packet that it received. The server will then use this message to determine which handshake a given TCP stream should be associated with, as well as what data needs to be retransmitted due packet loss.
+~~~
+                                    1  1  1  1  1  1
+      0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
+    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+    |             Session ID            |Seq. Number|
+    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+~~~
+{: #turbotls-tombstone title="TurboTLS tombstone packet layout"}
 
 # Discussion {#discussion}
-
+TODO do we even need this? This isn't a paper.
 
 # Security Considerations {#security-considerations}
 
@@ -340,12 +375,4 @@ However such defenses are provided by middleboxes and therefore do not affect th
 
 It should be noted here that the redundant UDP packets sent along with CH are part of the TurboTLS-specific technique we call request-based-fragmentation to mitigate _against_ a client's middlebox defenses incorrectly filtering TurboTLS connections, as otherwise multiple UDP responses to a single UDP request could be flagged as malicious behaviour. Furthermore, the one-to-oneness of the UDP request/response significantly reduces the impact of any amplification attack which tries to utilize a TurboTLS server as a reflector: an attacker would have to send one UDP packet for every reflected packet generated by the server, meaning that initial requests and responses are of comparable sizes, making the amplification factor so low that it would be an ineffective use of resources. Furthermore, the UDP requests ultimately must contain a fully formed CH before the server responds, limiting the amplification factor.
 
-# Acknowledgements
-
-
-
 --- back
-
-# Related work {#related-work}
-
-
