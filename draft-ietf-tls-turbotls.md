@@ -1,7 +1,7 @@
 ---
 title: TurboTLS for faster connection establishment
 abbrev: ietf-turbotls-design
-docname: draft-ietf-turbotls-design-latest
+docname: draft-ietf-tls-turbotls-latest
 date: 2023-09-05
 category: info
 
@@ -108,7 +108,7 @@ informative:
     author:
       -
         ins: Axel Koolhaas
-      - 
+      -
         ins: Tjeerd Slokker
   SBN22:
     target: https://datatracker.ietf.org/doc/draft-ietf-dnsop-svcb-https/11/
@@ -121,7 +121,7 @@ informative:
         ins: Mike Bishop
       -
         ins: Erik Nygren
-    
+
 
 --- abstract
 
@@ -306,7 +306,7 @@ Obviously the client can fragment its first C->S flow across multiple UDP packet
 Similarly, the server can fragment its first S->C flow across multiple UDP packets.  One additional problem here however is that the S->C flow is typically larger than the C->S flow (as it typically contains one or more certificates), so the server may have to send more UDP response packets than UDP request packets.  As noted by {{SW19}} in the context of DNSSEC, many network devices do not behave well when receiving multiple UDP responses to a single UDP request, and may close the port after the first packet, dropping the request.  Subsequent packets received at a closed port lead to ICMP failure alerts, which can be a nuisance.
 
 ### Client request-based fragmentation {#Construction-CRBF}
-A method proposed by Goertzen and Stebila {{GS22}} for DNSSEC is called request-based fragmentation.  In the context of large resource records in DNSSEC, {{GS22}} had the first response be a truncated response that included information about the size of the response, and then the client sent multiple additional requests, in parallel, for the remaining fragments.  This ensured that there was only one UDP response for each UDP request.  
+A method proposed by Goertzen and Stebila {{GS22}} for DNSSEC is called request-based fragmentation.  In the context of large resource records in DNSSEC, {{GS22}} had the first response be a truncated response that included information about the size of the response, and then the client sent multiple additional requests, in parallel, for the remaining fragments.  This ensured that there was only one UDP response for each UDP request.
 
 Maintaining one-to-oneness of UDP packets can prevent reflection attacks. We therefore offer an adaptation of that method for TurboTLS: the client can, in its first C->S flow, fragment its own C->S data across multiple UDP packets. Additionally it sends (in parallel) enough nearly-empty UDP requests for a predicted upper bound on the number of fragments the server will need to fit its response.  This preserves the model of each UDP request receiving a single UDP response reducing the potential for DDoS amplification attacks.
 
