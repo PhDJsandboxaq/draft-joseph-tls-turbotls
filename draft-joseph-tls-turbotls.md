@@ -1,8 +1,8 @@
 ---
 title: TurboTLS for faster connection establishment
-abbrev: ietf-turbotls-design
-docname: draft-ietf-tls-turbotls-latest
-date: 2023-09-05
+abbrev: joseph-tls-turbotls
+docname: draft-jospeh-tls-turbotls-latest
+date: 2023-10-23
 category: info
 
 ipr: trust200902
