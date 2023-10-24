@@ -1,6 +1,6 @@
 # TurboTLS for faster connection establishment
 
-This is the working area for the IETF [TURBOTLS Working Group](https://datatracker.ietf.org/wg/turbotls/documents/) Internet-Draft, "TurboTLS for faster connection establishment".
+This is the working area for the IETF Internet-Draft, "TurboTLS for faster connection establishment".
 
 * [Editor's Copy](https://PhDJsandboxaq.github.io/draft-ietf-turbotls-design/#go.draft-ietf-turbotls-design.html)
 * [Datatracker Page](https://datatracker.ietf.org/doc/draft-ietf-turbotls-design)
