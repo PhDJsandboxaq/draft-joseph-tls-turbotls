@@ -1,6 +1,6 @@
 # TurboTLS for faster connection establishment
 
-This is the working area for the IETF Internet-Draft, "TurboTLS for faster connection establishment".
+This is the working area for the individual Internet-Draft, "TurboTLS for faster connection establishment".
 
 * [Editor's Copy](https://PhDJsandboxaq.github.io/draft-joseph-tls-turbotls/#go.draft-joseph-tls-turbotls.html)
 * [Datatracker Page](https://datatracker.ietf.org/doc/draft-joseph-tls-turbotls)
