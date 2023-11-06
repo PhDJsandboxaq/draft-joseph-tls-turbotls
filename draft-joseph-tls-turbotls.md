@@ -2,7 +2,7 @@
 title: TurboTLS for faster connection establishment
 abbrev: joseph-tls-turbotls
 docname: draft-jospeh-tls-turbotls-latest
-date: 2023-10-23
+date: 2023-11-05
 category: info
 
 ipr: trust200902
