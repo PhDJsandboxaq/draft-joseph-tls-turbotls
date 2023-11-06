@@ -1,7 +1,7 @@
 ---
 title: TurboTLS for faster connection establishment
 abbrev: joseph-tls-turbotls
-docname: draft-jospeh-tls-turbotls-latest
+docname: draft-joseph-tls-turbotls-latest
 date: 2023-11-05
 category: info
 
@@ -127,7 +127,7 @@ informative:
 
 This document provides a high level protocol description for handshaking over UDP in the Transport Layer Security (TLS) protocol (version independent). In parallel, a TCP session is established, and once this is done, the TLS session reverts to TCP. In the event that the UDP handshaking portion fails, TurboTLS falls back to TLS-over-TCP as is usually done, resulting in negligible latency cost in the case of failure.
 
-Discussion of this work is encouraged to happen on the TLS IETF mailing list tls@ietf.org or on the GitHub repository which contains the draft: https://github.com/PhDJsandboxaq/draft-ietf-turbotls-design/.
+Discussion of this work is encouraged to happen on the TLS IETF mailing list tls@ietf.org or on the GitHub repository which contains the draft: https://github.com/PhDJsandboxaq/draft-joseph-turbotls-design/.
 
 --- middle
 
@@ -136,7 +136,6 @@ Discussion of this work is encouraged to happen on the TLS IETF mailing list tls
 This document gives a construction for TurboTLS {{ABGGJS23}}, which at its core is a method for handshaking over UDP in TLS before switching back to TCP for the TLS session. A technique called client request-based fragmentation is described which reduces the susceptability of TurboTLS servers to being exploited by UDP reflection attacks.
 
 reduce the possibility of portions of the handshake over UDP being filtered by poorly configured middle-boxes, and a fallback procedure to standard TLS-over-TCP (at minimal latency overhead) is provided.
-
 
 
 ## Terminology {#terminology}

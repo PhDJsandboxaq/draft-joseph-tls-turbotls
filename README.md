@@ -2,16 +2,16 @@
 
 This is the working area for the IETF Internet-Draft, "TurboTLS for faster connection establishment".
 
-* [Editor's Copy](https://PhDJsandboxaq.github.io/draft-ietf-turbotls-design/#go.draft-ietf-turbotls-design.html)
-* [Datatracker Page](https://datatracker.ietf.org/doc/draft-ietf-turbotls-design)
-* [Working Group Draft](https://datatracker.ietf.org/doc/html/draft-ietf-turbotls-design)
-* [Compare Editor's Copy to Working Group Draft](https://PhDJsandboxaq.github.io/draft-ietf-turbotls-design/#go.draft-ietf-turbotls-design.diff)
+* [Editor's Copy](https://PhDJsandboxaq.github.io/draft-joseph-turbotls-design/#go.draft-joseph-turbotls-design.html)
+* [Datatracker Page](https://datatracker.ietf.org/doc/draft-joseph-turbotls-design)
+* [Working Group Draft](https://datatracker.ietf.org/doc/html/draft-joseph-turbotls-design)
+* [Compare Editor's Copy to Working Group Draft](https://PhDJsandboxaq.github.io/draft-joseph-turbotls-design/#go.draft-joseph-turbotls-design.diff)
 
 
 ## Contributing
 
 See the
-[guidelines for contributions](https://github.com/PhDJsandboxaq/draft-ietf-turbotls-design/blob/master/CONTRIBUTING.md).
+[guidelines for contributions](https://github.com/PhDJsandboxaq/draft-joseph-turbotls-design/blob/master/CONTRIBUTING.md).
 
 Contributions can be made by creating pull requests.
 The GitHub interface supports creating pull requests using the Edit (✏) button.
@@ -27,4 +27,3 @@ $ make
 
 Command line usage requires that you have the necessary software installed.  See
 [the instructions](https://github.com/martinthomson/i-d-template/blob/main/doc/SETUP.md).
-
